@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: Payroll Generation Request Publisher API
+  version: 1.0.0
+  description: API responsible for receiving and publishing payslip generation requests in version v1.
+
+servers:
+  - url: /api/v1
+    description: Base path for version 1
+
+tags:
+  - name: Payslip Requests
+    description: Publishing requests to generate payslips
+
+paths:
+  /payslip-requests:
+    post:
+      tags:
+        - Payslip Requests
+      summary: Publish a payslip generation request
+      operationId: createPayslipRequest
+      description: Receives the minimum data to generate a payslip and enqueues the request for asynchronous processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollGenerationRequest'
+            examples:
+              default:
+                summary: Example of a valid request
+                value:
+                  employeeId: emp-1
+                  companyId: comp-1
+                  requesterId: req-1
+                  month: 5
+                  year: 2026
+      responses:
+        '202':
+          description: Request accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayrollRequestAcceptedResponse'
+              examples:
+                accepted:
+                  value:
+                    status: QUEUED
+                    requestId: 5c7d8e0b-6e22-4d7c-9be7-fdb4bcbca111
+        '400':
+          description: Invalid data or business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    timestamp: '2026-03-13T13:45:00-03:00'
+                    status: 400
+                    error: Bad Request
+                    message: Invalid input data
+                    details:
+                      - month: month must be between 1 and 12
+                    path: /api/v1/payslip-requests
+                businessError:
+                  summary: Business rule error
+                  value:
+                    timestamp: '2026-03-13T13:45:00-03:00'
+                    status: 400
+                    error: Bad Request
+                    message: Invalid business rule
+                    details:
+                      - year cannot be greater than 2027
+                    path: /api/v1/payslip-requests
+        '500':
+          description: Unexpected internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                internalError:
+                  value:
+                    timestamp: '2026-03-13T13:45:00-03:00'
+                    status: 500
+                    error: Internal Server Error
+                    message: Unexpected internal error
+                    details:
+                      - Try again later
+                    path: /api/v1/payslip-requests
+
+components:
+  schemas:
+    PayrollGenerationRequest:
+      type: object
+      required:
+        - employeeId
+        - companyId
+        - requesterId
+        - month
+        - year
+      properties:
+        employeeId:
+          type: string
+          description: Employee identifier
+          minLength: 1
+          example: emp-1
+        companyId:
+          type: string
+          description: Company identifier
+          minLength: 1
+          example: comp-1
+        requesterId:
+          type: string
+          description: Identifier of who submitted the request
+          minLength: 1
+          example: req-1
+        month:
+          type: integer
+          format: int32
+          description: Reference month for the payroll
+          minimum: 1
+          maximum: 12
+          example: 5
+        year:
+          type: integer
+          format: int32
+          description: Reference year for the payroll. The current implementation accepts up to the current year + 1.
+          minimum: 2000
+          example: 2026
+    PayrollRequestAcceptedResponse:
+      type: object
+      required:
+        - status
+        - requestId
+      properties:
+        status:
+          type: string
+          description: Initial request state after publication
+          example: QUEUED
+        requestId:
+          type: string
+          description: Unique identifier of the published request
+          example: 5c7d8e0b-6e22-4d7c-9be7-fdb4bcbca111
+    ErrorResponse:
+      type: object
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - details
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-03-13T13:45:00-03:00'
+        status:
+          type: integer
+          format: int32
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Invalid input data
+        details:
+          type: array
+          items:
+            type: string
+          example:
+            - month: month must be between 1 and 12
+        path:
+          type: string
+          example: /api/v1/payslip-requests

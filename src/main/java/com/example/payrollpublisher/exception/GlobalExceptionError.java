@@ -1,6 +1,9 @@
 package com.example.payrollpublisher.exception;
 
+import com.example.payrollpublisher.controller.PayrollRequestController;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -14,6 +17,7 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionError {
+    private static final Logger log = LoggerFactory.getLogger(PayrollRequestController.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
@@ -23,9 +27,11 @@ public class GlobalExceptionError {
                 .map(this::formatFieldError)
                 .toList();
 
+        log.warn("Bean validation failed: {}", details);
+
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Dados de entrada inválidos",
+                "Invalid input data",
                 details,
                 request
         );
@@ -38,9 +44,11 @@ public class GlobalExceptionError {
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .toList();
 
+        log.warn("Constraint violation: {}", details);
+
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Dados de entrada inválidos",
+                "Invalid input data",
                 details,
                 request
         );
@@ -48,9 +56,10 @@ public class GlobalExceptionError {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRule(IllegalArgumentException ex, WebRequest request) {
+        log.error("Business rule validation failure: {}", ex.getMessage());
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Regra de negócio inválida",
+                "Invalid business rule",
                 List.of(ex.getMessage()),
                 request
         );
@@ -58,10 +67,11 @@ public class GlobalExceptionError {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, WebRequest request) {
+        log.error("Unexpected internal error", ex);
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Erro interno inesperado",
-                List.of("Tente novamente mais tarde"),
+                "Unexpected internal error",
+                List.of("Try again later"),
                 request
         );
     }

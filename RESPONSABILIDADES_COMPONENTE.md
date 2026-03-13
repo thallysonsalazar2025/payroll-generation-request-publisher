@@ -1,85 +1,85 @@
-# Responsabilidades do componente `payroll-generation-request-publisher`
+# Responsibilities of the `payroll-generation-request-publisher` component
 
-## Objetivo principal
-Receber uma requisição de geração de holerite vinda do gateway e publicar um evento/comando em um tópico/fila do RabbitMQ para que o componente gerador processe a solicitação.
+## Primary Objective
+Receive a payslip generation request from the gateway and publish an event/command to a RabbitMQ topic/queue so the generator component can process the request.
 
-## Responsabilidades recomendadas
+## Recommended Responsibilities
 
-### 1) Validação de contrato da requisição
-Além de validar o objeto (`month`, `year`), o componente deve:
-- Garantir que `month` esteja entre 1 e 12.
-- Garantir que `year` esteja em faixa aceitável (ex.: >= 2000 e <= ano atual + 1).
-- Rejeitar payload inválido com erro claro (HTTP 400).
-- Validar formato/obrigatoriedade de identificadores necessários (ex.: `employeeId`, `companyId`, `requesterId`).
+### 1) Request contract validation
+In addition to validating the object (`month`, `year`), the component should:
+- Ensure `month` is between 1 and 12.
+- Ensure `year` is within an acceptable range (e.g., >= 2000 and <= current year + 1).
+- Reject invalid payloads with a clear error (HTTP 400).
+- Validate format/requiredness of needed identifiers (e.g., `employeeId`, `companyId`, `requesterId`).
 
-### 2) Validação de regra de negócio mínima (pré-publicação)
-- Verificar se o período solicitado é permitido pela política (ex.: sem data futura indevida).
-- Garantir que o endpoint é para **um único mês/ano por requisição**.
-- Opcional: bloquear reprocessamento simultâneo do mesmo `employeeId + month + year` quando houver job em andamento.
+### 2) Minimal business-rule validation (pre-publication)
+- Verify the requested period is allowed by policy (e.g., no invalid future date).
+- Ensure the endpoint handles **one month/year per request**.
+- Optional: block concurrent reprocessing of the same `employeeId + month + year` when a job is in progress.
 
-### 3) Idempotência
-Responsabilidade importante para evitar mensagens duplicadas:
-- Aceitar/gerar `idempotencyKey`.
-- Persistir controle de chave por uma janela de tempo.
-- Em repetição da mesma requisição, responder de forma consistente sem republicar mensagem.
+### 3) Idempotency
+Key responsibility to avoid duplicate messages:
+- Accept/generate an `idempotencyKey`.
+- Persist key control for a time window.
+- On a repeated request, respond consistently without republishing the message.
 
-### 4) Publicação confiável no RabbitMQ
-- Declarar exchange/routing key/fila conforme contrato.
-- Publicar com `message persistence` e headers mínimos.
-- Confirmar publicação (publisher confirms) antes de retornar sucesso ao cliente.
-- Em falha de publicação, retornar erro apropriado (ex.: HTTP 503/500) e registrar causa.
+### 4) Reliable publication to RabbitMQ
+- Declare exchange/routing key/queue according to the contract.
+- Publish with `message persistence` and minimal headers.
+- Confirm publication (publisher confirms) before returning success to the client.
+- On publication failure, return an appropriate error (e.g., HTTP 503/500) and log the cause.
 
-### 5) Enriquecimento e padronização da mensagem
-Produzir mensagem com metadados úteis para rastreabilidade:
+### 5) Message enrichment and standardization
+Produce a message with useful metadata for traceability:
 - `requestId` / `correlationId`.
 - `occurredAt` (timestamp).
-- `source` (serviço de origem).
+- `source` (origin service).
 - `schemaVersion`.
-- Contexto de auditoria (`requestedBy`, tenant, etc.).
+- Audit context (`requestedBy`, tenant, etc.).
 
-### 6) Observabilidade
-- Logs estruturados com correlação ponta a ponta.
-- Métricas: quantidade de requests, taxa de validação inválida, taxa de publicação com sucesso/erro, latência.
-- Tracing distribuído (quando aplicável).
+### 6) Observability
+- Structured logs with end-to-end correlation.
+- Metrics: request volume, invalid validation rate, successful/error publication rate, latency.
+- Distributed tracing (when applicable).
 
-### 7) Segurança e compliance
-- Validar identidade/autorização no nível esperado pelo domínio (mesmo com gateway na frente, se necessário).
-- Sanitizar dados sensíveis em logs.
-- Aplicar princípio do menor privilégio para credenciais do RabbitMQ.
+### 7) Security and compliance
+- Validate identity/authorization at the expected domain level (even with a gateway in front, if needed).
+- Sanitize sensitive data in logs.
+- Apply least-privilege to RabbitMQ credentials.
 
-### 8) Resiliência operacional
-- Timeout e retry controlado na publicação (com backoff).
-- Circuit breaker (se fizer sentido no stack).
-- Estratégia para indisponibilidade do broker (degradação + resposta clara).
+### 8) Operational resilience
+- Timeout and controlled retry for publication (with backoff).
+- Circuit breaker (if it makes sense for the stack).
+- Strategy for broker unavailability (graceful degradation + clear response).
 
-### 9) Contrato de resposta para o cliente
-Em vez de esperar geração síncrona, responder padrão assíncrono:
-- `202 Accepted` com `requestId` e status inicial (`RECEIVED`/`QUEUED`).
-- Endpoint complementar de consulta de status (se existir no ecossistema).
+### 9) Client response contract
+Instead of waiting for synchronous generation, reply with the async pattern:
+- `202 Accepted` with `requestId` and initial status (`RECEIVED`/`QUEUED`).
+- Complementary status inquiry endpoint (if it exists in the ecosystem).
 
-### 10) Governança de contrato de evento
-- Versionar schema de mensagem.
-- Garantir retrocompatibilidade entre publisher e consumer.
-- Documentar contrato (campos obrigatórios/opcionais e semântica).
+### 10) Event contract governance
+- Version the message schema.
+- Guarantee backward compatibility between publisher and consumer.
+- Document the contract (required/optional fields and semantics).
 
-## O que **não** deve ser responsabilidade deste componente
-- Geração do arquivo do holerite.
-- Cálculo detalhado de folha.
-- Regras pesadas do processamento final (essas ficam no consumer/gerador).
+## What is **not** this component's responsibility
+- Generating the payslip file.
+- Detailed payroll calculation.
+- Heavy rules of the final processing (those belong to the consumer/generator).
 
-## Checklist mínimo (MVP robusto)
-- [ ] Validação de `month/year` + identificadores obrigatórios.
-- [ ] Regra de 1 período por requisição.
-- [ ] Idempotência por chave de negócio.
-- [ ] Publicação com confirmação no RabbitMQ.
-- [ ] `correlationId` + logs estruturados.
-- [ ] Resposta `202 Accepted` com `requestId`.
-- [ ] Métricas básicas e tratamento de erro consistente.
+## Minimum checklist (robust MVP)
+- [ ] Validation of `month/year` + required identifiers.
+- [ ] Rule of 1 period per request.
+- [ ] Idempotency by business key.
+- [ ] Publication with confirmation to RabbitMQ.
+- [ ] `correlationId` + structured logs.
+- [ ] `202 Accepted` response with `requestId`.
+- [ ] Basic metrics and consistent error handling.
 
-## Sugestão prática
-Se o seu escopo atual já cobre validação e publicação, as **próximas prioridades** deveriam ser:
-1. Idempotência.
-2. Observabilidade (correlationId + métricas).
-3. Contrato assíncrono de resposta (`202 + requestId`).
+## Practical suggestion
+If your current scope already covers validation and publication, the **next priorities** should be:
+1. Idempotency.
+2. Observability (correlationId + metrics).
+3. Asynchronous response contract (`202 + requestId`).
 
-Esses três pontos costumam evitar retrabalho e incidentes em produção quando o volume aumenta.
+These three points typically prevent rework and incidents in production as volume grows.

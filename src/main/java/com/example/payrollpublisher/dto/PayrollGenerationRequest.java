@@ -5,23 +5,31 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.Year;
+
 public record PayrollGenerationRequest(
-        @NotBlank(message = "employeeId é obrigatório")
+        @NotBlank(message = "employeeId is required")
         String employeeId,
 
-        @NotBlank(message = "companyId é obrigatório")
+        @NotBlank(message = "companyId is required")
         String companyId,
 
-        @NotBlank(message = "requesterId é obrigatório")
+        @NotBlank(message = "requesterId is required")
         String requesterId,
 
-        @NotNull(message = "month é obrigatório")
-        @Min(value = 1, message = "month deve ser entre 1 e 12")
-        @Max(value = 12, message = "month deve ser entre 1 e 12")
+        @NotNull(message = "month is required")
+        @Min(value = 1, message = "month must be between 1 and 12")
+        @Max(value = 12, message = "month must be between 1 and 12")
         Integer month,
 
-        @NotNull(message = "year é obrigatório")
-        @Min(value = 2000, message = "year deve ser maior ou igual a 2000")
+        @NotNull(message = "year is required")
+        @Min(value = 2000, message = "year must be greater than or equal to 2000")
         Integer year
 ) {
+    public void validateBusinessRules() {
+        int maxYear = Year.now().getValue() + 1;
+        if (year != null && year > maxYear) {
+            throw new IllegalArgumentException("year cannot be greater than " + maxYear);
+        }
+    }
 }

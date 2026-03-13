@@ -29,7 +29,7 @@ class PayrollRequestControllerTest {
     void shouldReturnAcceptedWhenRequestIsValid() throws Exception {
         when(service.publish(any())).thenReturn("request-123");
 
-        mockMvc.perform(post("/api/payroll-generation-requests")
+        mockMvc.perform(post("/api/v1/payslip-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -47,7 +47,7 @@ class PayrollRequestControllerTest {
 
     @Test
     void shouldReturnStandardizedValidationErrorWhenMonthIsInvalid() throws Exception {
-        mockMvc.perform(post("/api/payroll-generation-requests")
+        mockMvc.perform(post("/api/v1/payslip-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -59,17 +59,17 @@ class PayrollRequestControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Dados de entrada inválidos"))
-                .andExpect(jsonPath("$.details[0]").value("month: month deve ser entre 1 e 12"))
-                .andExpect(jsonPath("$.path").value("/api/payroll-generation-requests"));
+                .andExpect(jsonPath("$.message").value("Invalid input data"))
+                .andExpect(jsonPath("$.details[0]").value("month: month must be between 1 and 12"))
+                .andExpect(jsonPath("$.path").value("/api/v1/payslip-requests"));
     }
 
     @Test
     void shouldReturnStandardizedBusinessErrorWhenYearIsTooHigh() throws Exception {
         int invalidYear = Year.now().getValue() + 2;
-        when(service.publish(any())).thenThrow(new IllegalArgumentException("year não pode ser maior que " + (invalidYear - 1)));
+        when(service.publish(any())).thenThrow(new IllegalArgumentException("year cannot be greater than " + (invalidYear - 1)));
 
-        mockMvc.perform(post("/api/payroll-generation-requests")
+        mockMvc.perform(post("/api/v1/payslip-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -81,8 +81,8 @@ class PayrollRequestControllerTest {
                                 }
                                 """.formatted(invalidYear)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Regra de negócio inválida"))
+                .andExpect(jsonPath("$.message").value("Invalid business rule"))
                 .andExpect(jsonPath("$.details[0]").exists())
-                .andExpect(jsonPath("$.path").value("/api/payroll-generation-requests"));
+                .andExpect(jsonPath("$.path").value("/api/v1/payslip-requests"));
     }
 }
