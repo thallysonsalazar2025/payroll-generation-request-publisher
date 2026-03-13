@@ -64,6 +64,26 @@ class PayrollRequestControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/payroll-generation-requests"));
     }
 
+
+    @Test
+    void shouldReturnStandardizedValidationErrorWhenPayloadIsMalformed() throws Exception {
+        mockMvc.perform(post("/api/payroll-generation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "employeeId": "emp-1",
+                                  "companyId": "comp-1",
+                                  "requesterId": "req-1",
+                                  "month": "abc",
+                                  "year": 2025
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Dados de entrada inválidos"))
+                .andExpect(jsonPath("$.details[0]").value("Payload de requisição malformado"))
+                .andExpect(jsonPath("$.path").value("/api/payroll-generation-requests"));
+    }
+
     @Test
     void shouldReturnStandardizedBusinessErrorWhenYearIsTooHigh() throws Exception {
         int invalidYear = Year.now().getValue() + 2;
