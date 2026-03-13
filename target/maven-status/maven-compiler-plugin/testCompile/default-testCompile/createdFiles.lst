@@ -1,0 +1,3 @@
+com\example\payrollpublisher\controller\PayrollGenerationRequestPublisherTest.class
+com\example\payrollpublisher\controller\PayrollRequestControllerTest.class
+com\example\payrollpublisher\integration\PayrollIntegrationTest.class

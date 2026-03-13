@@ -1,0 +1,15 @@
+com\example\payrollpublisher\logging\RequestLogFormatter.class
+com\example\payrollpublisher\dto\PayrollGenerationRequest.class
+com\example\payrollpublisher\exception\ErrorResponse.class
+com\example\payrollpublisher\config\RabbitMqConfig.class
+com\example\payrollpublisher\PayrollPublisherApplication.class
+com\example\payrollpublisher\controller\PayrollRequestController.class
+com\example\payrollpublisher\serialization\PayrollMessageSerializer.class
+com\example\payrollpublisher\controller\PayrollGenerationRequestPublisher.class
+com\example\payrollpublisher\logging\SensitiveDataSanitizer.class
+com\example\payrollpublisher\dto\PayrollRequestAcceptedResponse.class
+com\example\payrollpublisher\mappers\PayrollMapper.class
+com\example\payrollpublisher\dto\PayrollMessage.class
+com\example\payrollpublisher\service\PayrollRequestService.class
+com\example\payrollpublisher\exception\GlobalExceptionError.class
+com\example\payrollpublisher\mappers\PayrollMapperImpl.class

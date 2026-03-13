@@ -1,0 +1,14 @@
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\config\RabbitMqConfig.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\controller\PayrollGenerationRequestPublisher.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\controller\PayrollRequestController.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\dto\PayrollGenerationRequest.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\dto\PayrollMessage.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\dto\PayrollRequestAcceptedResponse.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\exception\ErrorResponse.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\exception\GlobalExceptionError.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\logging\RequestLogFormatter.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\logging\SensitiveDataSanitizer.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\mappers\PayrollMapper.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\PayrollPublisherApplication.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\serialization\PayrollMessageSerializer.java
+C:\Workspace\payroll-generation-request-publisher\src\main\java\com\example\payrollpublisher\service\PayrollRequestService.java
