@@ -3,6 +3,7 @@ package com.example.payrollpublisher.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,6 +53,16 @@ public class GlobalExceptionError {
                 HttpStatus.BAD_REQUEST,
                 "Regra de negócio inválida",
                 List.of(ex.getMessage()),
+                request
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMalformedPayload(HttpMessageNotReadableException ex, WebRequest request) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "Dados de entrada inválidos",
+                List.of("Payload de requisição malformado"),
                 request
         );
     }
